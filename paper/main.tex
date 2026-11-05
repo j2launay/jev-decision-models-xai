@@ -34,11 +34,11 @@
 While widely deployed for low-latency routing, policy checks, and automated triage, their statistical calibration and post-hoc explainability remain uncharacterized.
 We introduce an open, deterministic audit benchmark that systematically evaluates System~1 decision models across calibration under label-preserving perturbations, cross-question interference in multi-query requests, and post-hoc attribution faithfulness.
 Evaluating five open-weight models ($0.8\text{B}$ to $27\text{B}$) alongside a generative System~2 baseline across natural language inference (e-SNLI), adversarial syntactic shortcuts (HANS), clinical triage vignettes ($N=450$), high-throughput prompt injection defense (Tensor Trust, $N=150$), and a planted logic-gate trigger suite yields five principal findings:
-(1)~provider \texttt{confidence} is an exact closed-form transform of normalized Shannon entropy ($1 - H(p)/\ln K$) rather than empirical accuracy;
+(1)~provider \texttt{confidence} is an exact closed-form transform of distributional dispersion ($1 - H(p)/\ln K$ across sub-10B models, and normalized margin on \texttt{Clef-27B}) rather than empirical accuracy;
 (2)~co-asking multiple questions in a single payload induces severe cross-question interference at sub-billion scale ($22.4\%$ binary flips on \texttt{Tev1-0.8B}), which capacity scaling ($\ge 4\text{B}$) largely mitigates;
 (3)~System~1 models are $18\times$--$187\times$ faster and substantially better calibrated than generative baselines under adversarial syntactic shifts ($\text{ECE}_w = 0.032$ vs.\ $0.246$);
 (4)~for inline security guardrails, capacity scaling unlocks up to $94.7\%$ injection recall with strictly $0.0\%$ false alarms at millisecond latencies ($19$--$56$~ms vs.\ $426$~ms for generative LLMs); and
-(5)~single-pass inference renders coalition-based XAI practically interactive ($1.3$--$3.2$~s per input), Zwhile our proposed logit-space adaptation, \textbf{S1-SHAP}, resolves probability saturation to achieve $100\%$ ground-truth boolean logic gate recovery where probability-space explainers fail.
+(5)~single-pass inference renders coalition-based XAI practically interactive ($1.3$--$3.2$~s per input), while our proposed logit-space adaptation, \textbf{S1-SHAP}, resolves probability saturation to achieve $100\%$ ground-truth boolean logic gate recovery where probability-space explainers fail.
 \end{abstract}
 
 \section{Introduction}
@@ -62,7 +62,7 @@ Our contributions are:
 \begin{itemize}
 \item \textbf{An open, deterministic XAI and calibration benchmark} that queries System~1 decision models, enforces strict schema validation, caches bit-identical responses by weight digest, and evaluates calibration, perturbation robustness, and post-hoc attribution faithfulness (Leave-One-Out, LIME, KernelSHAP, and our proposed \textbf{S1-SHAP}) at word and subword granularity;
 \item \textbf{Logit-link KernelSHAP adaptation (\textbf{S1-SHAP}) and logic gate recovery:} We evaluate KernelSHAP instantiated with an inverse-sigmoid (logit) link function to mitigate softmax probability saturation on sharp decision heads at zero additional model calls, and show that this representation is strictly necessary to recover underlying boolean logic gates (OR vs.\ AND gates) via pairwise Shapley interaction indices;
-\item \textbf{Two structural findings on the System~1 interface} that directly impact real-world deployments: (1) the returned \texttt{confidence} field is an exact deterministic function of Shannon entropy ($1 - H(p)/\ln K$) rather than calibrated accuracy, and (2) co-asking multiple questions in a single request induces strong cross-question interference;
+\item \textbf{Two structural findings on the System~1 interface} that directly impact real-world deployments: (1) the returned \texttt{confidence} field is an exact deterministic dispersion transform ($1 - H(p)/\ln K$ on sub-10B models, and normalized margin on \texttt{Clef-27B}) rather than calibrated accuracy, and (2) co-asking multiple questions in a single request induces strong cross-question interference;
 \item \textbf{A multi-model, multi-dataset empirical evaluation} across e-SNLI~\cite{camburu2018}, HANS~\cite{mccoy2019}, clinical triage vignettes with known causal spans ($N=450$ expanded cohort), high-throughput adversarial prompt injection guardrails (Tensor Trust~\cite{toyer2023tensortrust}, $N=150$), and a new \textbf{Planted System-Rule (Hidden Trigger) XAI Benchmark} with exact ground-truth trigger rules injected in the unmasked directive schema, comparing five open-weight System~1 models across four parameter scales---\texttt{Tev1-0.8B}, \texttt{Tev1-4B}, \texttt{Nimble-9B}, \texttt{Clef-Flash-9B}, and \texttt{Clef-27B}---against a generative System~2 baseline (\texttt{Gemma4-8B} JSON and Chain-of-Thought).
 \end{itemize}
 
@@ -177,10 +177,7 @@ From these validated probability trajectories, the framework executes three comp
 \node[result, fill=gray!10, right=0.45cm of faith] (calib) {
   \textbf{C. Calibration \& Robustness}\\[2pt]
   ECE, MCE, Brier, Selective AUROC\\[2pt]
-  \textit{Example result:}\\
-  {\tiny\ttfamily e-SNLI: acc=0.88, conf=0.88 (ECE 0.04)\\
-  HANS: acc=0.64, conf=0.93 (ECE 0.31!)}
-  \textit{Example result ($N=450$):}\\
+  \textit{Cohort audit ($N=450$):}\\
   {\tiny\ttfamily e-SNLI: acc=0.86, conf=0.85 (ECE 0.04)\\
   HANS: acc=0.78, conf=0.88 (ECE 0.11!)}
 };
@@ -308,12 +305,15 @@ with numerical clipping $\varepsilon = 10^{-4}$, and solving the exact Shapley k
 \begin{equation}
 \sum_{i=1}^M \phi_i^{\text{S1}} \;=\; v_{\text{S1}}(\mathbf{1}) - v_{\text{S1}}(\mathbf{0}).
 \end{equation}
-For binary decisions ($K=2$), Equation~\eqref{eq:s1shap} is the exact log-odds of the positive class. For multiclass categorical choices ($K > 2$, such as 3-way e-SNLI or 3-level Clinical Triage), Equation~\eqref{eq:s1shap} evaluates the one-vs-rest log-odds of the predicted target class $y^*$: $\ell(p)_{y^*} = \ln(\tilde{p}_{y^*} / (1 - \tilde{p}_{y^*}))$, mapping the target probability onto the real line $\mathbb{R}$. This ensures continuous differentiability and avoids multi-output dimension explosion while preserving exact coalition efficiency.
+For binary decisions ($K=2$), \Eqref{eq:s1shap} is the exact log-odds of the positive class.
+For multiclass categorical choices ($K > 2$, such as 3-way e-SNLI or 3-level Clinical Triage), \Eqref{eq:s1shap} evaluates the one-vs-rest log-odds of the predicted target class $y^*$: $\ell(p)_{y^*} = \ln(\tilde{p}_{y^*} / (1 - \tilde{p}_{y^*}))$, mapping the target probability onto the real line $\mathbb{R}$.
+This one-vs-rest formulation preserves 1-dimensional weighted least squares efficiency ($O(M)$ parameters) and avoids fitting $K \times M$ coupled regressions that amplify sampling variance on finite coalition budgets, while focusing credit directly on the predicted decision.
 While link functions are theoretically known in generalized additive models and the original SHAP formulation~\cite{lundberg2017}, the NLP perturbation literature has almost universally operated in raw probability space.
 Crucially, in the System~1 setting, the logit link has three pragmatic virtues:
 (i) it remains strictly $100\%$ black-box, needing only the returned probability distribution;
 (ii) it is zero-overhead, reusing the \emph{exact same} coalition queries $h_s(z)$ evaluated for probability-space KernelSHAP via memoized value functions; and
 (iii) it linearizes saturated decision surfaces, which we show in Section~\ref{sec:interactions} is strictly necessary for recovering higher-order cooperative and redundant logic gate interactions.
+Furthermore, to ensure sampling stability, our implementation couples S1-SHAP with paired antithetic coalition sampling~\cite{covert2021explaining}; orthogonal uncertainty-aware extensions such as Bayesian SHAP~\cite{visani2022statistical,slack2021reliable} can directly place posterior credible intervals over $v_{\text{S1}}(z)$ without modifying the underlying logit link.
 
 \subsection{Label-Preserving Perturbation Operators}
 To test whether System~1 probabilities and calibration remain invariant under realistic surface noise, we define five deterministic perturbation operators $\mathcal{T}_\epsilon: \mathcal{S} \to \mathcal{S}$ designed to preserve the ground-truth semantic label:
@@ -420,7 +420,7 @@ High comprehensiveness ($\uparrow$) indicates that removing top features destroy
 
 \subsection{Implementation Details and Reproducibility}
 Local open-weight models are served via Ollama (v0.40.13) on an AMD Radeon RX 9070 XT GPU with \texttt{OLLAMA\_NUM\_PARALLEL=4} and four concurrent asynchronous client workers.
-All source code, datasets, evaluation harnesses, and reproduction scripts are publicly accessible at \url{https://github.com/JulienDelaunay/jev-decision-models-xai}.
+All source code, datasets, evaluation harnesses, and reproduction scripts are publicly accessible at \url{https://github.com/j2launay/jev-decision-models-xai}.
 Across our experiments, we verified that repeated calls with identical payloads return bit-identical floating-point outputs (unlike hosted generative LLM APIs~\cite{atil2025nondeterminism}).
 We therefore cache all validated responses in a local SQLite database indexed by the SHA-256 hash of the model weight digest and the canonicalized request payload, ensuring exact reproducibility while reporting latency benchmarks strictly on uncached calls.
 Table~\ref{tab:latency} reports uncached sequential latencies, output token counts, and concurrent throughput across all five evaluated System~1 models ($0.8\text{B}$ to $27\text{B}$) and our generative System~2 baselines (\texttt{Gemma4-8B} in direct structured JSON mode and Chain-of-Thought mode).
@@ -449,7 +449,7 @@ While provider documentation describes \texttt{confidence} qualitatively as show
 c(p) \;=\; 1 - \frac{H(p)}{\ln K} \;=\; 1 + \frac{1}{\ln K} \sum_{k=1}^K p_k \ln p_k.
 \label{eq:entropy-conf}
 \end{equation}
-Across all $600$ clean choice predictions on these four models ($150$ per model), the maximum absolute deviation between the API-returned \texttt{confidence} field and Equation~\eqref{eq:entropy-conf} is $4.4 \times 10^{-16}$ (IEEE~754 double-precision machine epsilon).
+Across all $600$ clean choice predictions on these four models ($150$ per model), the maximum absolute deviation between the API-returned \texttt{confidence} field and \Eqref{eq:entropy-conf} is $4.4 \times 10^{-16}$ (IEEE~754 double-precision machine epsilon).
 On \texttt{Clef-27B}, the provider instead implements the normalized margin above uniform chance, $c(p) = \frac{\max p - 1/K}{1 - 1/K}$ (verified to exact floating-point precision on $3$-way tasks).
 Crucially, neither provider implementation represents an empirical probability of correctness: for instance, a three-way prediction $p = (0.896, 0.061, 0.043)$ has $\max p = 0.896$ but an entropy \texttt{confidence} of only $0.632$.
 Treating $c(p)$ directly as a calibrated probability would systematically under-estimate certainty on concentrated distributions; we therefore evaluate calibration on $\max p$ while auditing $c(p)$ separately via selective AUROC ($\text{AUROC}_c$).
@@ -486,10 +486,10 @@ To rigorously isolate the causal driver of cross-question interference, Table~\r
 \end{table}
 
 \subsection{Calibration on Clean Inputs and Shortcut Shifts}
-Table~\ref{tab:calib} reports clean calibration for our initial pilot cohort ($n=60, 50, 40$), while Table~\ref{tab:scaling} (Section~\ref{sec:scaling}) and Table~\ref{tab:posthoc} evaluate the full expanded $N=450$ cohort ($150$ per dataset) with bootstrap confidence intervals, post-hoc recalibration, and selective risk.
-On in-distribution e-SNLI, \texttt{Tev1-0.8B} is accurate and well calibrated: over the expanded cohort ($n=150$), \emph{Choice} achieves $0.860$ accuracy with $\text{ECE}_w = 0.035$ ($95\%$ CI $[0.021, 0.068]$), while \texttt{Nimble-9B} ($0.953$ accuracy, $\text{ECE}_w = 0.014$) and \texttt{Tev1-4B} ($0.947$ accuracy, $\text{ECE}_w = 0.019$) reach near-ideal calibration.
+Table~\ref{tab:calib} reports clean calibration for \texttt{Tev1-0.8B} across the full expanded $N=450$ cohort ($n=150$ per dataset), while Table~\ref{tab:scaling} (Section~\ref{sec:scaling}) and Table~\ref{tab:posthoc} evaluate cross-model scaling, post-hoc recalibration, and selective risk.
+On in-distribution e-SNLI, \texttt{Tev1-0.8B} is accurate and well calibrated: over the expanded cohort ($n=150$), \emph{Choice} achieves $0.860$ accuracy with $\text{ECE}_w = 0.035$ ($95\%$ CI $[0.03, 0.09]$), while \texttt{Nimble-9B} ($0.953$ accuracy, $\text{ECE}_w = 0.014$) and \texttt{Tev1-4B} ($0.947$ accuracy, $\text{ECE}_w = 0.019$) reach near-ideal calibration.
 
-On HANS ($n=150$), \texttt{Tev1-0.8B} accuracy drops to $0.780$ while mean confidence remains high ($0.871$), driving $\text{ECE}_w$ to $0.111$ (Brier $0.364$).
+On HANS ($n=150$), \texttt{Tev1-0.8B} accuracy drops to $0.780$ while mean confidence remains high ($0.881$), driving $\text{ECE}_w$ to $0.111$ ($95\%$ CI $[0.07, 0.18]$, Brier $0.364$).
 Breaking HANS down by syntactic heuristic reveals that sub-billion errors concentrate on non-entailment instances built with the subsequence and constituent heuristics (where accuracy plunges to $0.11$--$0.12$ on difficult splits), where the model systematically endorses continuous substring overlaps with high confidence.
 Scaling to $4\text{B}$--$27\text{B}$ parameters progressively mitigates this heuristic: HANS \emph{Choice} accuracy rises to $0.873$ on \texttt{Clef-Flash-9B} ($\text{ECE}_w = 0.063$), $0.920$ on \texttt{Nimble-9B} ($\text{ECE}_w = 0.073$), $0.927$ on \texttt{Tev1-4B} ($\text{ECE}_w = 0.037$), and peaks at $\mathbf{0.940}$ on \texttt{Clef-27B} with $\text{ECE}_w = \mathbf{0.032}$ (Brier $0.101$).
 Notably, \texttt{Clef-27B} and \texttt{Tev1-4B} achieve the sharpest calibration under syntactic shift, maintaining Brier scores near $0.10$--$0.12$.
@@ -498,7 +498,7 @@ Finally, comparing selective ranking signals shows that the entropy-based \textt
 
 \begin{table}[t]
 \centering
-\caption{Calibration of Tev1-0.8B on clean inputs (initial pilot cohort $n \in \{60, 50, 40\}$; see Table~\ref{tab:scaling} for full $N=450$ comparison across models). ECE$_w$ and ECE$_m$ use $10$ equal-width and equal-mass bins. AUROC$_p$ and AUROC$_c$ are selective AUROCs of $\max p$ and of the provider \texttt{confidence}. Best head per dataset is in \textbf{bold}.}
+\caption{Calibration of \texttt{Tev1-0.8B} on clean inputs across the full expanded $N=450$ cohort ($n=150$ per dataset; see Table~\ref{tab:scaling} for cross-model comparison from $0.8\text{B}$ to $27\text{B}$). ECE$_w$ and ECE$_m$ use $10$ equal-width and equal-mass bins. AUROC$_p$ and AUROC$_c$ are selective AUROCs of $\max p$ and of the provider \texttt{confidence}. Best head per dataset is in \textbf{bold}.}
 \label{tab:calib}
 \resizebox{\textwidth}{!}{\input{tables/calibration_clean}}
 \end{table}
@@ -533,9 +533,9 @@ Second, selective risk evaluation (E-AURC) demonstrates that the top-label proba
 
 \subsection{Robustness and Calibration under Perturbations}
 Table~\ref{tab:perturbed} in the appendix reports calibration and accuracy shifts across all five perturbation families.
-The strongest degradation occurs under $20\%$ character typos on e-SNLI: on \texttt{Tev1-0.8B}, \emph{Choice} accuracy drops by $0.150$, $20\%$ of predictions flip, and $\text{ECE}_w$ increases by $+0.079$ ($95\%$ CI $[-0.008, 0.150]$), with \emph{Noul} showing a parallel shift ($+0.073$, CI $[-0.008, 0.145]$).
-Larger models are markedly more resilient to character noise: under $20\%$ typos on e-SNLI \emph{Choice}, flip rates drop from $20\%$ (\texttt{Tev1-0.8B}) to $8.3\%$ (\texttt{Tev1-4B} and \texttt{Clef-Flash-9B}) and $5.0\%$ (\texttt{Nimble-9B}).
-Interestingly, on HANS, $20\%$ typos slightly reduces over-confidence on \texttt{Tev1-0.8B} and thereby lowers $\text{ECE}_w$ ($-0.105$ and $-0.151$) by disrupting the exact lexical/subsequence matching that fuels the shortcut heuristic.
+The strongest degradation occurs under $20\%$ character typos on e-SNLI: on \texttt{Tev1-0.8B}, \emph{Choice} accuracy drops by $0.100$, $17\%$ of predictions flip, and $\text{ECE}_w$ increases by $+0.030$ ($95\%$ CI $[-0.02, 0.09]$), with \emph{Noul} showing a parallel shift ($\Delta\text{Acc} = -0.120$, $\Delta\text{ECE}_w = +0.038$, CI $[-0.01, 0.09]$).
+Larger models are markedly more resilient to character noise: under $20\%$ typos on e-SNLI \emph{Choice}, flip rates drop from $17\%$ (\texttt{Tev1-0.8B}) to $8.3\%$ (\texttt{Tev1-4B} and \texttt{Clef-Flash-9B}) and $5.0\%$ (\texttt{Nimble-9B}).
+On HANS, $20\%$ typos induces a $+0.069$ increase in Choice $\text{ECE}_w$ ($\Delta\text{Acc} = -0.133$, $27\%$ flips), but slightly lowers Noul $\text{ECE}_w$ ($-0.014$, CI $[-0.07, 0.08]$) by disrupting the exact lexical/subsequence matching that fuels the shortcut heuristic.
 Semantic distractors and lowercase/punctuation stripping leave $\text{ECE}_w$ within $\pm 0.05$ across all datasets and models.
 Overall, across the expanded $N=450$ cohort, clean out-of-distribution shortcut miscalibration on HANS dominates surface perturbation shifts across every model scale.
 
@@ -547,7 +547,7 @@ On Clinical Triage \emph{Noul}---where binary emergency predictions saturate str
 On Clinical Triage, sufficiency is negative across all three coalition methods: retaining only the top attributed clinical words yields an even higher predicted probability than the full vignette, confirming that neutral filler and confounder sentences dilute rather than support model certainty.
 
 \paragraph{Understanding the S1-SHAP vs.\ Probability-Space KernelSHAP Trade-Off.}
-On e-SNLI \emph{Noul}, probability-space KernelSHAP exhibits a slight edge in comprehensiveness over S1-SHAP ($0.541$ vs.\ $0.527$).
+On e-SNLI \emph{Noul}, probability-space KernelSHAP exhibits a slight edge in comprehensiveness over S1-SHAP ($0.563$ vs.\ $0.497$ in Table~\ref{tab:faith}).
 This behavior reveals an instructive mathematical trade-off: when a lightweight sub-billion model hesitates near the decision boundary ($p \approx 0.50$), the logit transformation is approximately linear ($\ell'(0.5) = 4$).
 However, on coalition queries where masking peripheral words drops the probability near $0$ or $1$, the boundary clipping threshold $\varepsilon = 10^{-4}$ can slightly amplify variance across uninformative feature subsets.
 In contrast, as soon as the decision head enters confident, saturated regimes ($p > 0.95$, as on HANS, Clinical Triage, and our planted trigger suites), probability-space KernelSHAP suffers severe gradient flattening ($p(1-p) \to 0$), whereas S1-SHAP preserves true coalitional credit and significantly outperforms probability-space estimation (Section~\ref{sec:scaling} and Section~\ref{sec:interactions}).
@@ -621,9 +621,9 @@ First, verifying instruction-following confirms that all $\ge 4\text{B}$ models 
 
 Second, across all rule-following instances, the three causal regimes cleanly separate single-feature perturbation, local linear surrogates, and Shapley coalition methods:
 \begin{itemize}
-\item \textbf{Single Trigger ($g=1$):} When a single code word drives the override rule, removing that word alone drops $P(\text{immediate})$ from $\approx 0.98$ to $< 0.01$. Consequently, LOO, LIME, KernelSHAP, and \textbf{S1-SHAP} all achieve a perfect $\text{Prec@}1 = 1.000$ and $\text{MRR} = 1.000$ (vs.\ $0.000$ for Random), concentrating $82$--$88\%$ of all positive attribution mass onto the single secret trigger word and achieving $0.906$ comprehensiveness and $0.037$ deletion AUC.
-\item \textbf{Dual Redundant OR-Triggers ($g=2$):} When two secret trigger words are planted under an OR-gate rule (e.g., \texttt{velvet} OR \texttt{cobalt}), deleting only one word leaves the other active, so the output probability remains saturated at $0.97$--$0.999$. As a result, \textbf{LOO collapses}: on $\ge 4\text{B}$ models, deleting \texttt{velvet} in \texttt{plant-dual-01} changes $P(\text{immediate})$ by $-0.0028$ on \texttt{Tev1-4B} and $-0.0004$ on \texttt{Nimble-9B}, causing LOO's $\text{Prec@}2$ to plunge to $0.417$ (\texttt{Nimble-9B}), $0.458$ (\texttt{Clef-Flash-9B}), and $0.583$ (\texttt{Tev1-4B}), with an overall mean of $0.558$ and comprehensiveness of $0.322$. Standard LIME also degrades ($\text{Prec@}2 = 0.849$, mass share $0.540$, deletion AUC $0.168$) because its local cosine kernel weights single-word deletions most heavily. In contrast, both KernelSHAP and \textbf{S1-SHAP} achieve a \textbf{perfect $\text{Prec@}2 = 1.000$} across every model, with \textbf{S1-SHAP} achieving the highest overall comprehensiveness ($\mathbf{0.730}$) and lowest deletion AUC ($\mathbf{0.084}$)---and the highest attribution mass share on both \texttt{Tev1-4B} ($0.861$) and \texttt{Clef-Flash-9B} ($0.857$).
-\item \textbf{Saturated Multi-Triggers ($g=3$):} Under a three-way OR-gate rule where any of three planted code words suffices to saturate $P(\text{immediate}) \approx 0.999$, LOO and LIME degrade even further ($\text{Prec@}3 = 0.656$ and $0.699$; comprehensiveness $0.279$ and $0.442$). Here, \textbf{S1-SHAP} and KernelSHAP recover $\mathbf{96.8}$--$\mathbf{97.8\%}$ of the three secret triggers, with \textbf{S1-SHAP} concentrating the largest share of positive attribution mass onto the ground-truth trigger words overall ($\mathbf{0.752}$ vs.\ $0.739$ for KernelSHAP and $0.588$ for LIME) and across every $\ge 4\text{B}$ model (\texttt{Tev1-4B}: $0.746$ vs.\ $0.726$; \texttt{Nimble-9B}: $0.767$ vs.\ $0.729$; \texttt{Clef-Flash-9B}: $0.766$ vs.\ $0.754$), as well as achieving the best insertion AUC ($\mathbf{0.946}$).
+\item \textbf{Single Trigger ($g=1$):} When a single code word drives the override rule, removing that word alone drops $P(\text{immediate})$ from $\approx 0.98$ to $< 0.01$. Consequently, LOO, LIME, KernelSHAP, and \textbf{S1-SHAP} all achieve a perfect $\text{Prec@}1 = 1.000$ and $\text{MRR} = 1.000$ (vs.\ $0.000$ for Random), concentrating $85.2$--$90.8\%$ of all positive attribution mass onto the single secret trigger word (Table~\ref{tab:planted}) and achieving $0.906$ comprehensiveness and $0.037$ deletion AUC.
+\item \textbf{Dual Redundant OR-Triggers ($g=2$):} When two secret trigger words are planted under an OR-gate rule (e.g., \texttt{velvet} OR \texttt{cobalt}), deleting only one word leaves the other active, so the output probability remains saturated at $0.97$--$0.999$. As a result, \textbf{LOO collapses}: on $\ge 4\text{B}$ models, deleting \texttt{velvet} in \texttt{plant-dual-01} changes $P(\text{immediate})$ by $-0.0028$ on \texttt{Tev1-4B} and $-0.0004$ on \texttt{Nimble-9B}, causing LOO's $\text{Prec@}2$ to plunge to $0.417$ (\texttt{Nimble-9B}), $0.458$ (\texttt{Clef-Flash-9B}), and $0.583$ (\texttt{Tev1-4B}), with an overall mean of $0.609$ (Table~\ref{tab:planted}) and comprehensiveness of $0.322$. Standard LIME also degrades ($\text{Prec@}2 = 0.845$, mass share $0.528$, deletion AUC $0.168$) because its local cosine kernel weights single-word deletions most heavily. In contrast, both KernelSHAP and \textbf{S1-SHAP} achieve a \textbf{perfect $\text{Prec@}2 = 1.000$} across every model, with \textbf{S1-SHAP} achieving the highest overall comprehensiveness ($\mathbf{0.730}$) and lowest deletion AUC ($\mathbf{0.084}$)---and the highest attribution mass share on both \texttt{Tev1-4B} ($0.861$) and \texttt{Clef-Flash-9B} ($0.857$).
+\item \textbf{Saturated Multi-Triggers ($g=3$):} Under a three-way OR-gate rule where any of three planted code words suffices to saturate $P(\text{immediate}) \approx 0.999$, LOO and LIME degrade even further ($\text{Prec@}3 = 0.650$ and $0.667$; comprehensiveness $0.279$ and $0.442$). Here, \textbf{S1-SHAP} and KernelSHAP recover $\mathbf{97.4}$--$\mathbf{98.3\%}$ of the three secret triggers, with \textbf{S1-SHAP} concentrating the largest share of positive attribution mass onto the ground-truth trigger words overall ($\mathbf{0.745}$ vs.\ $0.732$ for KernelSHAP and $0.562$ for LIME, Table~\ref{tab:planted}) and across every $\ge 4\text{B}$ model (\texttt{Tev1-4B}: $0.746$ vs.\ $0.726$; \texttt{Nimble-9B}: $0.767$ vs.\ $0.729$; \texttt{Clef-Flash-9B}: $0.766$ vs.\ $0.754$), as well as achieving the best insertion AUC ($\mathbf{0.946}$).
 \end{itemize}
 
 \begin{table}[!htbp]
@@ -644,7 +644,7 @@ Second, across all rule-following instances, the three causal regimes cleanly se
 \label{sec:interactions}
 While first-order attribution methods isolate \emph{which} words drive a decision, they are mathematically blind to the underlying boolean logic structure:
 for a symmetric two-trigger prompt, first-order Shapley values split attribution equally ($50/50$) between both active triggers regardless of whether the directive specifies an OR gate (\emph{"velvet OR cobalt"}) or an AND gate (\emph{"velvet AND cobalt"}).
-As established by Delaunay et al.~\cite{delaunay2022ape,delaunay2024evaluating}, local linear explanation surrogates fundamentally rely on an additive feature assumption that collapses under non-linear logical interactions and feature co-dependencies.
+As established by Delaunay et al.~\cite{delaunay2022when,delaunay2020anchor}, local linear explanation surrogates fundamentally rely on an additive feature assumption that collapses under non-linear logical interactions and feature co-dependencies.
 While auditing second-order interactions via the Shapley Interaction Index or ArchDetect second differences was historically cost-prohibitive on generative LLMs (requiring tens of thousands of autoregressive decoding passes), the sub-50ms execution speed of System~1 models renders higher-order game-theoretic audits computationally tractable in real time.
 To resolve this fundamental ambiguity, Table~\ref{tab:interactions} evaluates pairwise interaction explanations on a restricted game over the top-$k$ attributed features across three estimators:
 the exact Shapley Interaction Index (SII, \cite{grabisch1999}), ArchDetect-style averaged second differences~\cite{tsang2020}, and top-context second differences (LOO-pair), evaluated both in native probability space and in log-odds (logit) space.
@@ -707,9 +707,12 @@ Five critical insights emerge for security operations and AI safety architecture
 \item \textbf{The Sub-Billion Model Blind Spot:}
 While Together AI's \texttt{Tev1-0.8B} delivers ultra-fast single-pass inference ($19$~ms), it suffers from a severe representational blind spot on complex adversarial attacks, detecting only $10.7\%$ of injections (TPR $= 0.107$, $\text{ECE}_w = 0.296$, Brier $0.507$). Sub-billion parameter models lack the linguistic and contextual capacity to recognize disguised adversarial intent and prompt overrides.
 \item \textbf{Zero False Alarms Across All Capacities:}
-Crucially, every single evaluated model achieved a strict \textbf{0.0\% False Positive Rate (FPR)} on benign user queries. In production guardrails, false alarms degrade user trust and interrupt legitimate conversational flows. The zero false-alarm rate confirms that System~1 classifiers do not suffer from hair-trigger over-blocking on conversational inputs.
+Crucially, every single evaluated model achieved a strict \textbf{0.0\% False Positive Rate (FPR)} on benign user queries.
+On $n=75$ benign inputs, this empirical $0.0\%$ false-alarm rate corresponds to an exact $95\%$ Clopper-Pearson binomial confidence interval of $[0.0\%, 4.8\%]$.
+In production guardrails, false alarms degrade user trust and interrupt legitimate conversational flows. The zero false-alarm rate confirms that System~1 classifiers do not suffer from hair-trigger over-blocking on conversational inputs.
 \item \textbf{Frontier-Scale Precision and Near-Perfect Calibration:}
-Capacity scaling dramatically unlocks injection detection: \texttt{Tev1-4B} catches $68.0\%$ of attacks ($46$~ms), \texttt{Nimble-9B} catches $66.7\%$ ($264$~ms), and Cloudflare's \texttt{Clef-Flash-9B} achieves an outstanding $81.3\%$ attack recall and $90.7\%$ overall accuracy with near-zero calibration error ($\text{ECE}_w = 0.035$) in just $56$~ms. At the frontier scale, \texttt{Clef-27B} establishes benchmark-leading defense: \textbf{$94.7\%$ attack recall}, \textbf{$97.3\%$ overall accuracy}, and an exceptional calibration error of $\text{ECE}_w = \mathbf{0.010}$ (Brier $0.055$).
+Capacity scaling dramatically unlocks injection detection: \texttt{Tev1-4B} catches $68.0\%$ of attacks ($46$~ms), \texttt{Nimble-9B} catches $66.7\%$ ($264$~ms), and Cloudflare's \texttt{Clef-Flash-9B} achieves an outstanding $81.3\%$ attack recall ($95\%$ CI $[70.7\%, 89.4\%]$) and $90.7\%$ overall accuracy with near-zero calibration error ($\text{ECE}_w = 0.035$) in just $56$~ms.
+At the frontier scale, \texttt{Clef-27B} establishes benchmark-leading defense: \textbf{$94.7\%$ attack recall} ($95\%$ CI $[86.9\%, 98.5\%]$), \textbf{$97.3\%$ overall accuracy}, and an exceptional calibration error of $\text{ECE}_w = \mathbf{0.010}$ (Brier $0.055$).
 \item \textbf{System~1 vs.\ System~2 Inline Filtering:}
 The generative baseline \texttt{Gemma4-8B (Sys.\,2 JSON)} demonstrates why generative LLMs are ill-suited for inline firewalls: it required $426$~ms per query and detected only $49.3\%$ of attacks, with severe probability miscalibration ($\text{ECE}_w = 0.230$, Brier $0.465$). In sharp contrast, \texttt{Clef-Flash-9B} is \textbf{$7.6\times$ faster} ($56$~ms vs.\ $426$~ms), catches \textbf{$32.0$ percentage points more attacks} ($81.3\%$ vs.\ $49.3\%$), and provides \textbf{$6.5\times$ better probability calibration}.
 \item \textbf{Explainability for Incident Response (SOC Auditing):}
@@ -725,7 +728,7 @@ When an inline guardrail flags a prompt as malicious, security analysts require 
 
 \section{Discussion}
 Two structural findings from our audit concern the System~1 decision paradigm itself and apply broadly across providers.
-First, across all evaluated models, the provider \texttt{confidence} field is an exact normalized Shannon entropy summary ($1 - H(p)/\ln K$).
+First, across evaluated models, the provider \texttt{confidence} field is an exact deterministic summary of distributional dispersion ($1 - H(p)/\ln K$ across all sub-10B models, and $(\max p - 1/K)/(1 - 1/K)$ on \texttt{Clef-27B}) rather than empirical accuracy.
 While useful as a relative ranking signal, interpreting $c(p) = 0.63$ as a ``$63\%$ probability of correctness'' is mathematically incorrect; calibration must be evaluated on $\max p$.
 Second, a multi-question System~1 request is not a collection of independent queries: bundling a \emph{Choice} question and a \emph{Noul} question in a single payload caused the binary \emph{Noul} decision to flip on $22.4\%$ of inputs on \texttt{Tev1-0.8B} ($N=450$, reaching up to $60$--$82\%$ under exploratory uncalibrated prompts) and up to $13$--$17\%$ on $9\text{B}$--$27\text{B}$ models (\texttt{Clef-Flash-9B}, \texttt{Nimble-9B}, and \texttt{Clef-27B}), whereas \texttt{Tev1-4B} achieved near-zero interference ($0.2\%$).
 Production systems that bundle questions to reduce network overhead can alter a model's effective decision boundary unless isolated single-question invariance is verified first.
@@ -748,7 +751,7 @@ Our results establish that provider \texttt{confidence} scores measure entropy c
 At the same time, post-hoc coalition attributions (LIME, KernelSHAP, and \textbf{S1-SHAP}) achieve statistically significant gains in faithfulness ($p < 10^{-4}$ vs.\ LOO; $p = 0.0106$ for S1-SHAP vs.\ KernelSHAP on sharp heads) and $97$--$100\%$ ground-truth trigger recovery at zero extra coalition cost, providing a fast, axiomatic transparency layer for bare System~1 probability outputs.
 
 \section*{Reproducibility and Artifact Availability}
-All datasets, evaluation harnesses, and experimental logs are publicly available at \url{https://github.com/JulienDelaunay/jev-decision-models-xai}.
+All datasets, evaluation harnesses, and experimental logs are publicly available at \url{https://github.com/j2launay/jev-decision-models-xai}.
 The repository provides:
 (i) the deterministic audit harness supporting local Ollama models and remote System~1 endpoints;
 (ii) the Planted System-Rule Benchmark suites across single, dual OR, multi OR, dual AND, and near-miss distractor regimes;
@@ -784,7 +787,7 @@ $\mathcal{O}$ & Set of strings & Finite categorical option set $\{o_1, \dots, o_
 $K \in \mathbb{N}_{\ge 2}$ & Integer scalar & Cardinality of the option set ($K=3$ for e-SNLI / Triage; $K=2$ for HANS / \emph{Noul}). \\
 $p(y \mid s, q)$ & $\Delta^{K-1}$ simplex & Normalized probability distribution vector over declared options in $\mathcal{O}$. \\
 $y^*$ & Categorical label & Predicted top choice: $y^* = \arg\max_{o_k \in \mathcal{O}} p(o_k \mid s, q)$. \\
-$c(p)$ & $[0, 1]$ scalar & Provider-returned \texttt{confidence} field ($c(p) = 1 - H(p)/\ln K$). \\
+$c(p)$ & $[0, 1]$ scalar & Provider-returned \texttt{confidence} field ($1 - H(p)/\ln K$ on sub-10B models; $(\max p - 1/K)/(1 - 1/K)$ on \texttt{Clef-27B}). \\
 $H(p)$ & $\mathbb{R}_{\ge 0}$ scalar & Shannon entropy of the probability distribution: $-\sum_k p_k \ln p_k$. \\
 \midrule
 $M \in \mathbb{N}$ & Integer scalar & Number of human-interpretable features (words or tokens) in state $s$. \\
