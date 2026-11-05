@@ -1,0 +1,28 @@
+[project]
+name = "jev-xai"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "httpx>=0.28.1",
+    "huggingface-hub>=1.33.0",
+    "matplotlib>=3.11.2",
+    "numpy>=2.5.3",
+    "pandas>=3.0.6",
+    "pyarrow>=25.0.1",
+    "pydantic>=2.13.5",
+    "scikit-learn>=1.9.1",
+    "scipy>=1.18.1",
+    "shap>=0.52.0",
+    "tokenizers>=0.23.2",
+    "tqdm>=4.70.1",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+]

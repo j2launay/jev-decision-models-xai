@@ -1,0 +1,23 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Data & Tokenizers (large files)
+data/raw/
+data/tokenizers/
+
+# Cache & Scratch
+cache/
+scratch/
+results/
+
+# Temp archives
+tmlr_temp/
+*.zip
+
+# LaTeX build artifacts
+paper/
+
+settings.json
