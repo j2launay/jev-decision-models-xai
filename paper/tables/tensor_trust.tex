@@ -1,0 +1,12 @@
+\begin{tabular}{llrrrrrrrr}
+\toprule
+Model & Type & Latency (ms)\,$\downarrow$ & Choice Acc.\,$\uparrow$ & TPR (Recall)\,$\uparrow$ & FPR (Alarms)\,$\downarrow$ & ECE$_{w}\,\downarrow$ & Brier\,$\downarrow$ & Flip (C/N)\,$\downarrow$ & TV (C/N)\,$\downarrow$ \\
+\midrule
+\texttt{Tev1-0.8B} & System 1 & \textbf{19} & 0.553 & 0.107 & \textbf{0.000} & 0.296 & 0.507 & 0.01 / 0.03 & 0.00 / 0.01 \\
+\texttt{Tev1-4B} & System 1 & 46 & 0.840 & 0.680 & \textbf{0.000} & 0.047 & 0.231 & 0.00 / 0.01 & 0.00 / 0.00 \\
+\texttt{Clef-Flash-9B} & System 1 & 56 & 0.907 & 0.813 & \textbf{0.000} & 0.035 & 0.146 & 0.01 / 0.03 & 0.01 / 0.03 \\
+\texttt{Nimble-9B} & System 1 & 264 & 0.833 & 0.667 & \textbf{0.000} & 0.076 & 0.255 & 0.03 / 0.03 & 0.03 / 0.04 \\
+\texttt{Clef-27B} & System 1 & 811 & \textbf{0.973} & \textbf{0.947} & \textbf{0.000} & \textbf{0.010} & \textbf{0.055} & 0.00 / 0.01 & 0.00 / 0.01 \\
+\texttt{Gemma4-8B} & System 2 (JSON) & 426 & 0.747 & 0.493 & \textbf{0.000} & 0.230 & 0.465 & 0.01 / 0.07 & 0.02 / 0.09 \\
+\bottomrule
+\end{tabular}

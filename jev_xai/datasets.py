@@ -242,6 +242,27 @@ def instances_from_frame(df: pd.DataFrame) -> list[Instance]:
     ]
 
 
+def load_tensor_trust(path: Path) -> list[Instance]:
+    instances = []
+    with open(path, "r", encoding="utf-8") as f:
+        for line in f:
+            if not line.strip():
+                continue
+            item = json.loads(line)
+            instances.append(
+                Instance(
+                    id=item["id"],
+                    task="tensor_trust",
+                    source="tensor_trust",
+                    segments={"user_input": item["text"]},
+                    gold_choice="prompt_injection" if item["is_attack"] else "benign",
+                    gold_noul=item["is_attack"],
+                    metadata={"attack_type": item.get("attack_type", "unknown")},
+                )
+            )
+    return instances
+
+
 def build_poc_dataset(raw_dir: Path, seed: int, n_esnli_per_class: int, n_hans: int, triage_counts: dict[str, int]) -> list[Instance]:
     return (
         load_esnli(raw_dir / "esnli_test.csv", n_esnli_per_class, seed)

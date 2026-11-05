@@ -1,0 +1,19 @@
+\begin{tabular}{llrrrr}
+\toprule
+ & & \multicolumn{2}{c}{Question Order Control} & \multicolumn{1}{c}{Option Permutation} & \multicolumn{1}{c}{Prompt Length Control} \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-5}\cmidrule(lr){6-6}
+Model & Head & Joint ($C \to N$) Flip/TV & Joint ($N \to C$) Flip/TV & Shuffled Opts Flip & Neutral Dummy Flip/TV \\
+\midrule
+\texttt{Tev1-0.8B} & Choice & 0.051 / 0.103 & 0.051 / 0.103 & 0.000 & 0.040 / 0.041 \\
+ & Noul & 0.224 / 0.144 & 0.224 / 0.144 & -- & 0.009 / 0.020 \\
+\midrule
+\texttt{Tev1-4B} & Choice & 0.002 / 0.002 & 0.002 / 0.002 & 0.000 & 0.002 / 0.002 \\
+ & Noul & 0.002 / 0.001 & 0.002 / 0.001 & -- & 0.000 / 0.001 \\
+\midrule
+\texttt{Nimble-9B} & Choice & 0.111 / 0.221 & 0.111 / 0.221 & 0.000 & 0.004 / 0.028 \\
+ & Noul & 0.049 / 0.099 & 0.049 / 0.099 & -- & 0.000 / 0.012 \\
+\midrule
+\texttt{Clef-Flash-9B} & Choice & 0.007 / 0.019 & 0.007 / 0.019 & 0.000 & 0.004 / 0.010 \\
+ & Noul & 0.131 / 0.102 & 0.131 / 0.102 & -- & 0.018 / 0.013 \\
+\bottomrule
+\end{tabular}

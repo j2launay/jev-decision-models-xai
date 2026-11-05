@@ -1,0 +1,20 @@
+\begin{tabular}{llrrrrrr}
+\toprule
+ & & \multicolumn{5}{c}{Clinical Triage Vignettes} & \multicolumn{1}{c}{e-SNLI} \\
+\cmidrule(lr){3-7}\cmidrule(lr){8-8}
+Head & Method & Flag prec.@$g\,\uparrow$ & Conf.\ share@$g\,\downarrow$ & $\bar{\phi}$ flag\,$\uparrow$ & $\bar{\phi}$ conf.\,$\downarrow$ & $\bar{\phi}$ other & Human prec.@$g\,\uparrow$ \\
+Head & Method & Flag prec.@$g\,\uparrow$ & Conf.\ share@$g\,\downarrow$ & $\bar{\phi}_{\text{flag}}\,\uparrow$ & $\bar{\phi}_{\text{conf}}\,\downarrow$ & $\bar{\phi}_{\text{other}}$ & Human prec.@$g\,\uparrow$ \\
+\midrule
+Choice & LOO & \textbf{0.529} & 0.139 & \textbf{0.025} & -0.002 & 0.003 & \textbf{0.537} \\
+ & LIME & 0.501 & \textbf{0.106} & 0.024 & \textbf{-0.002} & 0.002 & 0.533 \\
+ & KernelSHAP & 0.478 & 0.131 & 0.023 & -0.003 & 0.002 & 0.526 \\
+ & S1-SHAP (ours)$^\dagger$ & 0.468 & 0.131 & 0.140$^\dagger$ & -0.006$^\dagger$ & 0.003$^\dagger$ & 0.525 \\
+ & Random & 0.386 & 0.191 & -- & -- & -- & 0.257 \\
+\midrule
+Noul & LOO & \textbf{0.540} & \textbf{0.121} & 0.017 & -0.001 & 0.002 & \textbf{0.555} \\
+ & LIME & 0.507 & 0.134 & \textbf{0.019} & \textbf{-0.000} & 0.004 & 0.510 \\
+ & KernelSHAP & 0.501 & 0.140 & 0.018 & 0.002 & 0.004 & 0.478 \\
+ & S1-SHAP (ours)$^\dagger$ & 0.523 & 0.143 & 0.108$^\dagger$ & 0.017$^\dagger$ & 0.022$^\dagger$ & 0.494 \\
+ & Random & 0.386 & 0.191 & -- & -- & -- & 0.257 \\
+\bottomrule
+\end{tabular}

@@ -5,19 +5,31 @@ __pycache__/
 .pytest_cache/
 
 # Data & Tokenizers (large files)
-data/raw/
+data/raw/*
+!data/raw/tensor_trust_150.jsonl
 data/tokenizers/
 
 # Cache & Scratch
 cache/
 scratch/
-results/
+results/*
+!results/tensor_trust/
+!results/tensor_trust/metrics_summary.json
 
 # Temp archives
 tmlr_temp/
 *.zip
 
 # LaTeX build artifacts
-paper/
+paper/*.aux
+paper/*.bbl
+paper/*.blg
+paper/*.log
+paper/*.out
+paper/*.toc
+paper/*.synctex.gz
+paper/*.fdb_latexmk
+paper/*.fls
+paper/main_v2.*
 
 settings.json

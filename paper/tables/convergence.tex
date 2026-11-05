@@ -1,0 +1,20 @@
+\begin{tabular}{llrrrr}
+\toprule
+Method & Agreement with $N=1024$ & $N=128$ & $N=256$ & $N=512$ & $N=1024$ \\
+\midrule
+LIME & Choice -- Spearman & 0.621 & 0.730 & \textbf{0.793} & 1.000 \\
+ & Choice -- top-20\% overlap & 0.592 & 0.730 & \textbf{0.774} & 1.000 \\
+ & Noul -- Spearman & 0.602 & 0.726 & \textbf{0.781} & 1.000 \\
+ & Noul -- top-20\% overlap & 0.679 & 0.747 & \textbf{0.788} & 1.000 \\
+\midrule
+KernelSHAP & Choice -- Spearman & 0.668 & 0.794 & \textbf{0.842} & 1.000 \\
+ & Choice -- top-20\% overlap & 0.632 & 0.797 & \textbf{0.840} & 1.000 \\
+ & Noul -- Spearman & 0.632 & 0.724 & \textbf{0.814} & 1.000 \\
+ & Noul -- top-20\% overlap & 0.704 & 0.744 & \textbf{0.822} & 1.000 \\
+\midrule
+S1-SHAP (ours) & Choice -- Spearman & 0.645 & 0.790 & \textbf{0.862} & 1.000 \\
+ & Choice -- top-20\% overlap & 0.621 & 0.729 & \textbf{0.768} & 1.000 \\
+ & Noul -- Spearman & 0.650 & 0.718 & \textbf{0.810} & 1.000 \\
+ & Noul -- top-20\% overlap & 0.723 & 0.787 & \textbf{0.807} & 1.000 \\
+\bottomrule
+\end{tabular}

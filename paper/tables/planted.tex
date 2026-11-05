@@ -1,0 +1,25 @@
+\begin{tabular}{llrrrrrr}
+\toprule
+ & & \multicolumn{3}{c}{Ground-Truth Trigger Recovery} & \multicolumn{3}{c}{Intervention Faithfulness} \\
+\cmidrule(lr){3-5}\cmidrule(lr){6-8}
+Regime & Method & Prec@$g\,\uparrow$ & Mass Share\,$\uparrow$ & MRR\,$\uparrow$ & Comp.\,$\uparrow$ & Del.\,AUC\,$\downarrow$ & Ins.\,AUC\,$\uparrow$ \\
+\midrule
+Single Trigger ($g{=}1$) & LOO & \textbf{1.000} & 0.896 & \textbf{1.000} & 0.906 & 0.038 & \textbf{0.940} \\
+ & LIME & \textbf{1.000} & 0.906 & \textbf{1.000} & 0.906 & 0.040 & 0.935 \\
+ & KernelSHAP & \textbf{1.000} & \textbf{0.908} & \textbf{1.000} & 0.906 & 0.037 & 0.935 \\
+ & S1-SHAP (ours) & \textbf{1.000} & 0.852 & \textbf{1.000} & \textbf{0.906} & \textbf{0.037} & 0.931 \\
+ & Random & 0.000 & 0.049 & 0.118 & 0.123 & 0.506 & 0.421 \\
+\midrule
+Dual OR-Trigger ($g{=}2$) & LOO & 0.609 & 0.615 & 0.572 & 0.322 & 0.470 & 0.905 \\
+ & LIME & 0.845 & 0.528 & 0.704 & 0.606 & 0.168 & \textbf{0.944} \\
+ & KernelSHAP & \textbf{1.000} & \textbf{0.858} & \textbf{0.750} & 0.729 & 0.086 & 0.944 \\
+ & S1-SHAP (ours) & \textbf{1.000} & 0.853 & \textbf{0.750} & \textbf{0.730} & \textbf{0.084} & 0.944 \\
+ & Random & 0.164 & 0.141 & 0.292 & 0.207 & 0.479 & 0.690 \\
+\midrule
+Multi OR-Trigger ($g{=}3$) & LOO & 0.650 & 0.587 & 0.504 & 0.279 & 0.450 & 0.938 \\
+ & LIME & 0.667 & 0.562 & 0.528 & 0.442 & 0.215 & 0.941 \\
+ & KernelSHAP & \textbf{0.983} & 0.732 & \textbf{0.608} & \textbf{0.513} & \textbf{0.128} & 0.945 \\
+ & S1-SHAP (ours) & 0.974 & \textbf{0.745} & 0.608 & 0.504 & 0.136 & \textbf{0.946} \\
+ & Random & 0.085 & 0.116 & 0.122 & 0.061 & 0.759 & 0.566 \\
+\bottomrule
+\end{tabular}

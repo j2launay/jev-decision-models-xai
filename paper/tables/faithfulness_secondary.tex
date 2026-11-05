@@ -1,0 +1,31 @@
+\begin{tabular}{lllrrrrrr}
+\toprule
+ & & & \multicolumn{4}{c}{Deletion masking} & \multicolumn{2}{c}{\texttt{[MASK]} masking} \\
+\cmidrule(lr){4-7}\cmidrule(lr){8-9}
+Source & Head & Method & Comp.\,$\uparrow$ & Suff.\,$\downarrow$ & Del.\,AUC\,$\downarrow$ & Ins.\,AUC\,$\uparrow$ & Comp.\,$\uparrow$ & Suff.\,$\downarrow$ \\
+\midrule
+e-SNLI & Choice & LOO & 0.590 & 0.298 & 0.321 & \textbf{0.779} & 0.517 & 0.405 \\
+ &  & LIME & \textbf{0.668} & 0.291 & 0.234 & 0.747 & 0.567 & 0.401 \\
+ &  & KernelSHAP & 0.662 & \textbf{0.275} & \textbf{0.194} & 0.765 & 0.570 & \textbf{0.398} \\
+ &  & S1-SHAP (ours) & 0.666 & 0.299 & 0.195 & 0.732 & \textbf{0.586} & 0.419 \\
+ &  & Random & 0.226 & 0.513 & 0.488 & 0.507 & 0.317 & 0.507 \\
+\cmidrule{2-9}
+ & Noul & LOO & 0.455 & 0.214 & 0.516 & \textbf{0.850} & 0.411 & 0.277 \\
+ &  & LIME & \textbf{0.556} & 0.225 & 0.404 & 0.830 & \textbf{0.454} & \textbf{0.260} \\
+ &  & KernelSHAP & 0.554 & \textbf{0.209} & \textbf{0.366} & 0.828 & 0.452 & 0.277 \\
+ &  & S1-SHAP (ours) & 0.477 & 0.220 & 0.471 & 0.807 & 0.432 & 0.262 \\
+ &  & Random & 0.180 & 0.332 & 0.652 & 0.672 & 0.248 & 0.370 \\
+\midrule
+Triage & Choice & LOO & 0.443 & 0.086 & 0.194 & 0.795 & 0.388 & 0.142 \\
+ &  & LIME & 0.459 & 0.015 & 0.161 & 0.815 & 0.398 & 0.120 \\
+ &  & KernelSHAP & \textbf{0.469} & \textbf{-0.042} & \textbf{0.114} & \textbf{0.833} & \textbf{0.441} & \textbf{0.047} \\
+ &  & S1-SHAP (ours) & 0.456 & -0.035 & 0.125 & 0.818 & 0.414 & 0.069 \\
+ &  & Random & 0.101 & 0.336 & 0.524 & 0.552 & 0.157 & 0.353 \\
+\cmidrule{2-9}
+ & Noul & LOO & 0.391 & 0.049 & 0.326 & 0.890 & 0.311 & 0.120 \\
+ &  & LIME & \textbf{0.450} & -0.100 & 0.197 & \textbf{0.961} & \textbf{0.397} & 0.011 \\
+ &  & KernelSHAP & 0.437 & -0.098 & 0.198 & 0.929 & 0.340 & 0.018 \\
+ &  & S1-SHAP (ours) & 0.449 & \textbf{-0.119} & \textbf{0.174} & 0.957 & 0.389 & \textbf{-0.012} \\
+ &  & Random & 0.076 & 0.337 & 0.617 & 0.620 & 0.115 & 0.323 \\
+\bottomrule
+\end{tabular}

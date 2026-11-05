@@ -1,0 +1,14 @@
+\begin{tabular}{llrrrlrrrrr}
+\toprule
+Source & Head & $n$ & Acc.\,$\uparrow$ & Conf. & ECE$_{w}\,\downarrow$ [95\% CI] & ECE$_{m}\,\downarrow$ & MCE$_{w}\,\downarrow$ & Brier\,$\downarrow$ & AUROC$_{p}\,\uparrow$ & AUROC$_{c}\,\uparrow$ \\
+\midrule
+e-SNLI & Choice & 150 & 0.860 & 0.847 & 0.035 [0.03, 0.09] & \textbf{0.032} & 0.454 & 0.200 & \textbf{0.853} & 0.853 \\
+e-SNLI & Noul & 150 & \textbf{0.900} & 0.903 & \textbf{0.030} [0.02, 0.08] & 0.063 & \textbf{0.130} & \textbf{0.160} & 0.760 & -- \\
+\midrule
+HANS & Choice & 150 & \textbf{0.780} & 0.881 & \textbf{0.111} [0.07, 0.18] & \textbf{0.127} & \textbf{0.134} & \textbf{0.364} & 0.547 & 0.667 \\
+HANS & Noul & 150 & 0.773 & 0.927 & 0.154 [0.10, 0.22] & 0.154 & 0.249 & 0.374 & \textbf{0.651} & -- \\
+\midrule
+Triage & Choice & 150 & \textbf{0.553} & 0.807 & \textbf{0.265} [0.20, 0.34] & \textbf{0.262} & 0.526 & \textbf{0.583} & \textbf{0.771} & 0.726 \\
+Triage & Noul & 150 & 0.540 & 0.908 & 0.368 [0.30, 0.46] & 0.368 & \textbf{0.468} & 0.783 & 0.623 & -- \\
+\bottomrule
+\end{tabular}
